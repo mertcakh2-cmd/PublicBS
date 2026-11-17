@@ -1,0 +1,45 @@
+name: Build PublicBS Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'PublicBS-Unity.zip'
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Build Windows x64 EXE
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check project archive
+        run: test -f PublicBS-Unity.zip
+
+      - name: Extract Unity project
+        run: |
+          mkdir -p UnityProject
+          unzip -q PublicBS-Unity.zip -d UnityProject
+          test -f UnityProject/PublicBS-Unity/ProjectSettings/ProjectVersion.txt
+
+      - name: Build Windows EXE with Unity
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: UnityProject/PublicBS-Unity
+          unityVersion: 2022.3.62f1
+          targetPlatform: StandaloneWindows64
+          buildMethod: PublicBS.Editor.ProjectBuild.BuildWindows
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: PublicBS-Windows-x64
+          path: UnityProject/PublicBS-Unity/Builds/Windows/
+          if-no-files-found: error
+          retention-days: 14
