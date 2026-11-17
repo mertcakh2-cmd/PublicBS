@@ -1,45 +1,41 @@
-name: Build PublicBS Windows EXE
+name: PublicBS Windows EXE
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'PublicBS-Unity.zip'
+workflow_dispatch:
+push:
+paths:
+- 'PublicBS-Unity.zip'
+- '.github/workflows/buildExe.yml'
 
 permissions:
-  contents: read
+contents: read
 
 jobs:
-  build-windows:
-    name: Build Windows x64 EXE
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+build:
+runs-on: ubuntu-latest
 
-      - name: Check project archive
-        run: test -f PublicBS-Unity.zip
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
 
-      - name: Extract Unity project
-        run: |
-          mkdir -p UnityProject
-          unzip -q PublicBS-Unity.zip -d UnityProject
-          test -f UnityProject/PublicBS-Unity/ProjectSettings/ProjectVersion.txt
+  - name: Extract Unity Project
+    run: |
+      mkdir -p UnityProject
+      unzip -o PublicBS-Unity.zip -d UnityProject
 
-      - name: Build Windows EXE with Unity
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        with:
-          projectPath: UnityProject/PublicBS-Unity
-          unityVersion: 2022.3.62f1
-          targetPlatform: StandaloneWindows64
-          buildMethod: PublicBS.Editor.ProjectBuild.BuildWindows
+  - name: Build Windows EXE
+    uses: game-ci/unity-builder@v4
+    env:
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+    with:
+      projectPath: UnityProject/PublicBS-Unity
+      unityVersion: 2022.3.62f1
+      targetPlatform: StandaloneWindows64
+      allowDirtyBuild: true
 
-      - name: Upload Windows build
-        uses: actions/upload-artifact@v4
-        with:
-          name: PublicBS-Windows-x64
-          path: UnityProject/PublicBS-Unity/Builds/Windows/
-          if-no-files-found: error
-          retention-days: 14
+  - name: Upload EXE
+    uses: actions/upload-artifact@v4
+    with:
+      name: PublicBS-Windows
+      path: build/StandaloneWindows64
+      if-no-files-found: error
