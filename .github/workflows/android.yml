@@ -1,45 +1,42 @@
-name: Build PublicBS Android APK
+name: PublicBS Android APK
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'PublicBS-Unity.zip'
+workflow_dispatch:
+push:
+paths:
+- 'PublicBS-Unity.zip'
+- '.github/workflows/android.yml'
 
 permissions:
-  contents: read
+contents: read
 
 jobs:
-  build-android:
-    name: Build Android APK
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+build:
+runs-on: ubuntu-latest
 
-      - name: Check project archive
-        run: test -f PublicBS-Unity.zip
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
 
-      - name: Extract Unity project
-        run: |
-          mkdir -p UnityProject
-          unzip -q PublicBS-Unity.zip -d UnityProject
-          test -f UnityProject/PublicBS-Unity/ProjectSettings/ProjectVersion.txt
+  - name: Extract Unity Project
+    run: |
+      mkdir -p UnityProject
+      unzip -o PublicBS-Unity.zip -d UnityProject
 
-      - name: Build APK with Unity
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        with:
-          projectPath: UnityProject/PublicBS-Unity
-          unityVersion: 2022.3.62f1
-          targetPlatform: Android
-          buildMethod: PublicBS.Editor.ProjectBuild.BuildAndroid
+  - name: Build Android APK
+    uses: game-ci/unity-builder@v4
+    env:
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+    with:
+      projectPath: UnityProject/PublicBS-Unity
+      unityVersion: 2022.3.62f1
+      targetPlatform: Android
+      buildMethod: PublicBS.Editor.ProjectBuild.BuildAndroid
+      allowDirtyBuild: true
 
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: PublicBS-Android-APK
-          path: UnityProject/PublicBS-Unity/Builds/Android/PublicBS.apk
-          if-no-files-found: error
-          retention-days: 14
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: PublicBS-Android
+      path: build/Android
+      if-no-files-found: error
