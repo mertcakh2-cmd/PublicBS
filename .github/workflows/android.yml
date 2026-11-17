@@ -1,0 +1,45 @@
+name: Build PublicBS Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'PublicBS-Unity.zip'
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check project archive
+        run: test -f PublicBS-Unity.zip
+
+      - name: Extract Unity project
+        run: |
+          mkdir -p UnityProject
+          unzip -q PublicBS-Unity.zip -d UnityProject
+          test -f UnityProject/PublicBS-Unity/ProjectSettings/ProjectVersion.txt
+
+      - name: Build APK with Unity
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: UnityProject/PublicBS-Unity
+          unityVersion: 2022.3.62f1
+          targetPlatform: Android
+          buildMethod: PublicBS.Editor.ProjectBuild.BuildAndroid
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PublicBS-Android-APK
+          path: UnityProject/PublicBS-Unity/Builds/Android/PublicBS.apk
+          if-no-files-found: error
+          retention-days: 14
