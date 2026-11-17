@@ -1,41 +1,4 @@
 name: PublicBS Windows EXE
-
-on:
-workflow_dispatch:
-push:
-paths:
-- 'PublicBS-Unity.zip'
-- '.github/workflows/buildExe.yml'
-
-permissions:
-contents: read
-
-jobs:
-build:
-runs-on: ubuntu-latest
-
-steps:
-  - name: Checkout
-    uses: actions/checkout@v4
-
-  - name: Extract Unity Project
-    run: |
-      mkdir -p UnityProject
-      unzip -o PublicBS-Unity.zip -d UnityProject
-
-  - name: Build Windows EXE
-    uses: game-ci/unity-builder@v4
-    env:
-      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-    with:
-      projectPath: UnityProject/PublicBS-Unity
-      unityVersion: 2022.3.62f1
-      targetPlatform: StandaloneWindows64
-      allowDirtyBuild: true
-
-  - name: Upload EXE
-    uses: actions/upload-artifact@v4
-    with:
-      name: PublicBS-Windows
-      path: build/StandaloneWindows64
-      if-no-files-found: error
+'on': {workflow_dispatch: {}, push: {paths: ['PublicBS-Unity.zip', '.github/workflows/buildExe.yml']}}
+permissions: {contents: read}
+jobs: {build: {runs-on: ubuntu-latest, steps: [{name: Checkout, uses: actions/checkout@v4}, {name: Extract Unity Project, run: 'unzip -o PublicBS-Unity.zip -d UnityProject'}, {name: Build Windows EXE, uses: game-ci/unity-builder@v4, env: {UNITY_LICENSE: '${{ secrets.UNITY_LICENSE }}'}, with: {projectPath: UnityProject/PublicBS-Unity, unityVersion: '2022.3.62f1', targetPlatform: StandaloneWindows64, allowDirtyBuild: true}}, {name: Upload EXE, uses: actions/upload-artifact@v4, with: {name: PublicBS-Windows, path: build/StandaloneWindows64, if-no-files-found: error}}]}}
